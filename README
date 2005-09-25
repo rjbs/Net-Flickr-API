@@ -1,0 +1,86 @@
+NAME
+    Net::Flickr::RDF - base API class for Net::Flickr::* libraries
+
+SYNOPSIS
+     package Net::Flickr::RDF;
+     use base qw (Net::Flickr::API);
+
+DESCRIPTION
+    Base API class for Net::Flickr::* libraries
+
+OPTIONS
+    Options are passed to Net::Flickr::Backup using a Config::Simple object
+    or a valid Config::Simple config file. Options are grouped by "block".
+
+  flick
+    * api_key
+        String. *required*
+
+        A valid Flickr API key.
+
+    * api_secret
+        String. *required*
+
+        A valid Flickr Auth API secret key.
+
+    * auth_token
+        String. *required*
+
+        A valid Flickr Auth API token.
+
+PACKAGE METHODS
+  __PACKAGE__->new($cfg)
+    Where $cfg is either a valid *Config::Simple* object or the path to a
+    file that can be parsed by *Config::Simple*.
+
+    Returns a *Net::Flickr::API* object.
+
+OBJECT METHODS
+  $obj->api_call(\%args)
+    Valid args are :
+
+    * method
+        A string containing the name of the Flickr API method you are
+        calling.
+
+    * args
+        A hash ref containing the key value pairs you are passing to
+        *method*
+
+    If the method encounters any errors calling the API, receives an API
+    error or can not parse the response it will log an error event, via the
+    log method, and return undef.
+
+    Otherwise it will return a *XML::LibXML::Document* object (if
+    XML::LibXML is installed) or a *XML::XPath* object.
+
+  $obj->log()
+    Returns a *Log::Dispatch* object.
+
+VERSION
+    1.0
+
+DATE
+    $Date: 2005/09/25 14:29:59 $
+
+AUTHOR
+    Aaron Straup Cope <ascope@cpan.org>
+
+SEE ALSO
+    Config::Simple
+
+    Flickr::API
+
+    XML::XPath
+
+    XML::LibXML
+
+BUGS
+    Please report all bugs via http://rt.cpan.org/
+
+LICENSE
+    Copyright (c) 2005 Aaron Straup Cope. All Rights Reserved.
+
+    This is free software. You may redistribute it and/or modify it under
+    the same terms as Perl itself.
+
