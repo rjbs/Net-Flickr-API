@@ -1,15 +1,15 @@
 use strict;
 
-# $Id: API.pm,v 1.4 2005/09/25 14:29:59 asc Exp $
+# $Id: API.pm,v 1.5 2005/09/26 01:04:56 asc Exp $
 # -*-perl-*-
 
 package Net::Flickr::API;
 
-$Net::Flickr::API::VERSION = '1.0';
+$Net::Flickr::API::VERSION = '1.1';
 
 =head1 NAME
 
-Net::Flickr::RDF - base API class for Net::Flickr::* libraries
+Net::Flickr::API - base API class for Net::Flickr::* libraries
 
 =head1 SYNOPSIS
 
@@ -305,11 +305,11 @@ sub log {
 
 =head1 VERSION
 
-1.0
+1.1
 
 =head1 DATE
 
-$Date: 2005/09/25 14:29:59 $
+$Date: 2005/09/26 01:04:56 $
 
 =head1 AUTHOR
 

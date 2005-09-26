@@ -1,6 +1,10 @@
-# $Id: Changes,v 1.2 2005/09/25 14:29:59 asc Exp $
+# $Id: Changes,v 1.3 2005/09/26 01:04:56 asc Exp $
 
 Changes for the Net::Flickr::API Perl library
+
+1.1	Sun Sep 25 2005
+
+	- fixed POD typos
 
 1.0	Sun Sep 25 2005
 

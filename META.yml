@@ -1,6 +1,6 @@
 ---
 name: Net-Flickr-API
-version: 1.0
+version: 1.1
 author:
   - Aaron Straup Cope E<lt>ascope@cpan.orgE<gt>
 abstract: base API class for Net::Flickr::* libraries
@@ -16,5 +16,5 @@ build_requires:
 provides:
   Net::Flickr::API:
     file: lib/Net/Flickr/API.pm
-    version: 1.0
+    version: 1.1
 generated_by: Module::Build version 0.2611
