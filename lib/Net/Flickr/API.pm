@@ -1,11 +1,11 @@
 use strict;
 
-# $Id: API.pm,v 1.5 2005/09/26 01:04:56 asc Exp $
+# $Id: API.pm,v 1.7 2005/12/17 17:42:36 asc Exp $
 # -*-perl-*-
 
 package Net::Flickr::API;
 
-$Net::Flickr::API::VERSION = '1.1';
+$Net::Flickr::API::VERSION = '1.2';
 
 =head1 NAME
 
@@ -305,11 +305,11 @@ sub log {
 
 =head1 VERSION
 
-1.1
+1.2
 
 =head1 DATE
 
-$Date: 2005/09/26 01:04:56 $
+$Date: 2005/12/17 17:42:36 $
 
 =head1 AUTHOR
 
@@ -337,6 +337,8 @@ This is free software. You may redistribute it and/or
 modify it under the same terms as Perl itself.
 
 =cut
+
+return 1;
 
 __END__
 

@@ -1,6 +1,10 @@
-# $Id: Changes,v 1.3 2005/09/26 01:04:56 asc Exp $
+# $Id: Changes,v 1.4 2005/12/17 17:42:36 asc Exp $
 
 Changes for the Net::Flickr::API Perl library
+
+1.2     Sat Dec 17 2005
+
+        - ARGH. Return 1 like, you know, a module should.
 
 1.1	Sun Sep 25 2005
 
