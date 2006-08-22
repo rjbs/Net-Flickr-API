@@ -1,11 +1,11 @@
 use strict;
 
-# $Id: API.pm,v 1.7 2005/12/17 17:42:36 asc Exp $
+# $Id: API.pm,v 1.13 2006/08/18 03:11:04 asc Exp $
 # -*-perl-*-
 
 package Net::Flickr::API;
 
-$Net::Flickr::API::VERSION = '1.2';
+$Net::Flickr::API::VERSION = '1.4';
 
 =head1 NAME
 
@@ -49,6 +49,38 @@ A valid Flickr Auth API token.
 
 =back
 
+=head2 reporting
+
+=over 
+
+=item * B<enabled>
+
+Boolean.
+
+Default is false.
+
+=item * B<handler>
+
+String.
+
+The default handler is B<Screen>, as in C<Log::Dispatch::Screen>
+
+=item * B<handler_args>
+
+For example, the following :
+
+ reporting_handler_args=name:foobar;min_level=info
+
+Would be converted as :
+
+ (name      => "foobar",
+  min_level => "info");
+
+The default B<name> argument is "__report". The default B<min_level> argument
+is "info".
+
+=back
+
 =cut
 
 use Config::Simple;
@@ -77,74 +109,121 @@ Returns a I<Net::Flickr::API> object.
 =cut
 
 sub new {
-    my $pkg = shift;
-    my $cfg = shift;
-
-    my $self = {'__wait'   => time() + $PAUSE_SECONDS_OK,
-		'__paused' => 0};
-
-    bless $self,$pkg;
-
-    if (! $self->init($cfg)) {
-	unself $self;
-    }
-
-    return $self;
+        my $pkg = shift;
+        my $cfg = shift;
+    
+        my $self = {'__wait'   => time() + $PAUSE_SECONDS_OK,
+                    '__paused' => 0};
+        
+        bless $self,$pkg;
+        
+        if (! $self->init($cfg)) {
+                unself $self;
+        }
+        
+        return $self;
 }
 
 sub init {
-    my $self = shift;
-    my $cfg  = shift;
+        my $self = shift;
+        my $cfg  = shift;
+        
+        $self->{cfg} = (UNIVERSAL::isa($cfg,"Config::Simple")) ? $cfg : Config::Simple->new($cfg);
+        
+        if ($self->{cfg}->param("flickr.api_handler") !~ /^(?:XPath|LibXML)$/) {
+                warn "Invalid API handler";
+                return 0;
+        }
+        
+        #
+        
+        my $log_fmt = sub {
+                my %args = @_;
+                
+                my $msg = $args{'message'};
+                chomp $msg;
+                
+                if ($args{'level'} eq "error") {
+                        
+                        my ($ln,$sub) = (caller(4))[2,3];
+                        $sub =~ s/.*:://;
+                        
+                        return sprintf("[%s][%s, ln%d] %s\n",
+                                       $args{'level'},$sub,$ln,$msg);
+                }
+                
+                return sprintf("[%s] %s\n",$args{'level'},$msg);
+        };
+        
+        my $logger = Log::Dispatch->new(callbacks=>$log_fmt);
+        my $error  = Log::Dispatch::Screen->new(name      => '__error',
+                                                min_level => 'error',
+                                                stderr    => 1);
+        
+        $logger->add($error);
 
-    $self->{cfg} = (UNIVERSAL::isa($cfg,"Config::Simple")) ? $cfg : Config::Simple->new($cfg);
+        #
+        # Custom report logging
+        #
 
-    #
+        if ($self->{cfg}->param("reporting.enable")) {
 
-    my $log_fmt = sub {
-	my %args = @_;
+                my $report_handler = $self->{cfg}->param("reporting.handler") || "Screen";
+                $report_handler    =~ s/:://g;
 
-	my $msg = $args{'message'};
-	chomp $msg;
+                my $report_pkg = "Log::Dispatch::$report_handler";
+                eval "require $report_pkg";
 
-	if ($args{'level'} eq "error") {
+                if ($@) {
+                        warn "Failed to load $report_pkg, $@";
+                        return 0;
+                }
 
-	    my ($ln,$sub) = (caller(4))[2,3];
-	    $sub =~ s/.*:://;
+                my %report_args = ();
 
-	    return sprintf("[%s][%s, ln%d] %s\n",
-			   $args{'level'},$sub,$ln,$msg);
-	}
-	
-	return sprintf("[%s] %s\n",$args{'level'},$msg);
-    };
+                if (my $args = $self->{cfg}->param("reporting.handler_args")) {
 
-    my $logger = Log::Dispatch->new(callbacks=>$log_fmt);
-    my $error  = Log::Dispatch::Screen->new(name      => '__error',
-                                            min_level => 'error',
-                                            stderr    => 1);
+                        foreach my $part (split(",", $args)) {
+                                my ($key, $value) = split(":", $part);
+                                $report_args{$key} = $value;
+                        }
+                }
 
-    $logger->add($error);
-    $self->{'__logger'} = $logger;
+                $report_args{'name'}      ||= "__report";
+                $report_args{'min_level'} ||= "info";
 
-    #
+                my $reporter = $report_pkg->new(%report_args);
 
-    $self->{api} = Flickr::API->new({key    => $self->{cfg}->param("flickr.api_key"),
-				     secret => $self->{cfg}->param("flickr.api_secret")});
+                if ($!) {
+                        warn "Failed to instantiate $report_pkg, $!";
+                        return 0;
+                }
 
-    my $pkg     = ref($self);
-    my $version = undef;
-
-    do {
-	my $ref = join("::",$pkg,"VERSION");
-
-	no strict "refs";
-	$version = ${$ref};
-    };
-
-    my $agent_string = sprintf("%s/%s",$pkg,$version);
-
-    $self->{api}->agent($agent_string);
-    return 1;
+                $logger->add($reporter);
+        }
+            
+        $self->{'__logger'} = $logger;
+        
+        #
+        
+        $self->{api} = Flickr::API->new({key     => $self->{cfg}->param("flickr.api_key"),
+                                         secret  => $self->{cfg}->param("flickr.api_secret"),
+                                         handler => $self->{cfg}->param("flickr.api_handler")});
+        
+        my $pkg     = ref($self);
+        my $version = undef;
+        
+        do {
+                my $ref = join("::", $pkg, "VERSION");
+                
+                no strict "refs";
+                $version = ${$ref};
+        };
+        
+        my $agent_string = sprintf("%s/%s", $pkg, $version);
+        
+        $self->{api}->agent($agent_string);
+        return 1;
 }
 
 =head1 OBJECT METHODS
@@ -179,117 +258,101 @@ installed) or a I<XML::XPath> object.
 =cut
 
 sub api_call {
-    my $self = shift;
-    my $args = shift;
+        my $self = shift;
+        my $args = shift;
+        
+        #
+        
+        # check to see if we need to take
+        # breather (are we pounding or are
+        # we not?)
 
-    #
+        while (time < $self->{'__wait'}) {
 
-    # check to see if we need to take
-    # breather (are we pounding or are
-    # we not?)
+                my $debug_msg = sprintf("trying not to beat up the Flickr servers, pause for %.2f seconds\n",
+                                        $PAUSE_SECONDS_OK);
 
-    while (time < $self->{'__wait'}) {
+                $self->log()->debug($debug_msg);
+                sleep($PAUSE_SECONDS_OK);
+        }
+        
+        # send request
+        
+        delete $args->{args}->{api_sig};
+        $args->{args}->{auth_token} = $self->{cfg}->param("flickr.auth_token");
 
-	my $debug_msg = sprintf("trying not to beat up the Flickr servers, pause for %.2f seconds\n",
-				$PAUSE_SECONDS_OK);
+        #
 
-	$self->log()->debug($debug_msg);
-	sleep($PAUSE_SECONDS_OK);
-    }
+        my %sig_args       = %{$args->{args}};
+        $sig_args{api_key} = $self->{api}->{api_key};
+        $sig_args{method}  = $args->{method};
 
-    # send request
+        my $sig = $self->{api}->sign_args(\%sig_args);
+        $args->{args}->{api_sig} = $sig;
 
-    delete $args->{args}->{api_sig};
-    $args->{args}->{auth_token} = $self->{cfg}->param("flickr.auth_token");
+        #
 
-    my $req = Flickr::API::Request->new($args);
-    $self->log()->debug("calling $args->{method}");
-
-    my $res = $self->{api}->execute_request($req);
-
-    # check for 503 status
-
-    if ($res->code() eq $PAUSE_ONSTATUS) {
-
-	# you are in a dark and twisty corridor
-	# where all the errors look the same - 
-	# just give up if we hit this ceiling
-
-	$self->{'__paused'} ++;
-
-	if ($self->{'__paused'} > $PAUSE_MAXTRIES) {
-
-	    my $errmsg = sprintf("service returned '%d' status %d times; exiting",
-				 $PAUSE_ONSTATUS,$PAUSE_MAXTRIES);
-	    
-	    $self->log()->error($errmsg);
-	    return undef;
-	}
-
-	my $retry_after = $res->header("Retry-After");
-	my $debug_msg   = undef;
-
-	if ($retry_after ) {
-	    $debug_msg = sprintf("service unavailable, requested to retry in %d seconds",
-				 $retry_after);
-	} 
-
-	else {
-	    $retry_after = $PAUSE_SECONDS_UNAVAILABLE * $self->{'__paused'};
-	    $debug_msg = sprintf("service unavailable, pause for %.2f seconds",
-				 $retry_after);
-	}
-
-	$self->log()->debug($debug_msg);
-	sleep($retry_after);
-
-	# try, try again
-
-	return $self->_apicall($args);
-    }
-
-    $self->{'__wait'}   = time + $PAUSE_SECONDS_OK;
-    $self->{'__paused'} = 0;
-
-    #
-
-    my $xml = undef;
-    eval "require XML::LibXML";
-
-    if ($@) {
-
-	eval {
-	    eval "require XML::XPath";
-	    $xml = XML::XPath->new(xml=>$res->content());
-	};
-
-    }
-
-    else {
-	eval {
-	    my $parser = XML::LibXML->new();
-	    $xml = $parser->parse_string($res->content());
-	};
-    }
-
-    #
-
-    if (! $xml) {
-	$self->log()->error("failed to parse API response, calling $args->{method} : $@");
-	$self->log()->error($res->content());
-	return undef;
-    }
-
-    #
-
-    if ($xml->findvalue("/rsp/\@stat") eq "fail") {
-	$self->log()->error(sprintf("[%s] %s (calling calling $args->{method})\n",
-				    $xml->findvalue("/rsp/err/\@code"),
-				    $xml->findvalue("/rsp/err/\@msg")));
-	return undef;
-    }
-
-    return ($@) ? undef : $xml;
+        my $req = Flickr::API::Request->new($args);
+        $self->log()->debug("calling $args->{method}");
+        
+        my $res = $self->{api}->execute_request($req);
+        
+        # check for 503 status
+        
+        if ($res->code() eq $PAUSE_ONSTATUS) {
+                
+                # you are in a dark and twisty corridor
+                # where all the errors look the same - 
+                # just give up if we hit this ceiling
+                
+                $self->{'__paused'} ++;
+                
+                if ($self->{'__paused'} > $PAUSE_MAXTRIES) {
+                        
+                        my $errmsg = sprintf("service returned '%d' status %d times; exiting",
+                                             $PAUSE_ONSTATUS,$PAUSE_MAXTRIES);
+                        
+                        $self->log()->error($errmsg);
+                        return undef;
+                }
+                
+                my $retry_after = $res->header("Retry-After");
+                my $debug_msg   = undef;
+                
+                if ($retry_after ) {
+                        $debug_msg = sprintf("service unavailable, requested to retry in %d seconds",
+                                             $retry_after);
+                } 
+                
+                else {
+                        $retry_after = $PAUSE_SECONDS_UNAVAILABLE * $self->{'__paused'};
+                        $debug_msg = sprintf("service unavailable, pause for %.2f seconds",
+                                             $retry_after);
+                }
+                
+                $self->log()->debug($debug_msg);
+                sleep($retry_after);
+                
+                # try, try again
+                
+                return $self->_apicall($args);
+        }
+        
+        $self->{'__wait'}   = time + $PAUSE_SECONDS_OK;
+        $self->{'__paused'} = 0;
+        
+        #
+        
+        if (! $res->success()) {
+                my $err = join(", ", ($res->last_error()));
+                $self->log()->error("failed to parse API response, calling $args->{method} : $err");
+                $self->log()->error($res->content());
+                return undef;
+        }
+        
+        #
+        
+        return $res->result();
 }
 
 =head2 $obj->log()
@@ -299,17 +362,17 @@ Returns a I<Log::Dispatch> object.
 =cut
 
 sub log {
-    my $self = shift;
-    return $self->{'__logger'};
+        my $self = shift;
+        return $self->{'__logger'};
 }
 
 =head1 VERSION
 
-1.2
+1.4
 
 =head1 DATE
 
-$Date: 2005/12/17 17:42:36 $
+$Date: 2006/08/18 03:11:04 $
 
 =head1 AUTHOR
 

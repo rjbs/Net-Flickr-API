@@ -28,6 +28,30 @@ OPTIONS
 
         A valid Flickr Auth API token.
 
+  reporting
+    * enabled
+        Boolean.
+
+        Default is false.
+
+    * handler
+        String.
+
+        The default handler is Screen, as in "Log::Dispatch::Screen"
+
+    * handler_args
+        For example, the following :
+
+         reporting_handler_args=name:foobar;min_level=info
+
+        Would be converted as :
+
+         (name      => "foobar",
+          min_level => "info");
+
+        The default name argument is "__report". The default min_level
+        argument is "info".
+
 PACKAGE METHODS
   __PACKAGE__->new($cfg)
     Where $cfg is either a valid *Config::Simple* object or the path to a
@@ -58,10 +82,10 @@ OBJECT METHODS
     Returns a *Log::Dispatch* object.
 
 VERSION
-    1.2
+    1.4
 
 DATE
-    $Date: 2005/12/17 17:42:36 $
+    $Date: 2006/08/18 03:11:04 $
 
 AUTHOR
     Aaron Straup Cope <ascope@cpan.org>
