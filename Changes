@@ -6,9 +6,35 @@
 @prefix asc:     <http://aaronland.info/ns/changefile/> .
                                      
 <>
-        dc:identifier           "$Id: Changes,v 1.6 2006/08/18 03:11:03 asc Exp $" ;
+        dc:identifier           "$Id: Changes,v 1.9 2006/08/25 14:21:56 asc Exp $" ;
         dc:description          "Changes for Net::Flickr::API.pm" ;
         dcterms:references      <http://aaronland.info/perl/net/flickr/api/> .
+
+
+<http://aaronland.info/perl/net/delicious/Net-Flickr-API-1.5.tar.gz>
+        dcterms:isVersionOf <http://aaronland.info/perl/flickr/api/> ;
+        dcterms:replaces    <http://aaronland.info/perl/net/flickr/api/Net-Flickr-API-1.5_01.tar.gz>; 
+
+        doap:Version    [
+                        doap:revision     "1.5" ;
+                        doap:created      "2006-08-25" ;
+                        ];
+        asc:changes     [
+                        asc:update       "Bless as 1.5" ;
+                        ] .
+
+<http://aaronland.info/perl/net/delicious/Net-Flickr-API-1.5_01.tar.gz>
+        dcterms:isVersionOf <http://aaronland.info/perl/flickr/api/> ;
+        dcterms:replaces    <http://aaronland.info/perl/net/flickr/api/Net-Flickr-API-1.4.tar.gz>; 
+
+        doap:Version    [
+                        doap:revision     "1.5_01" ;
+                        doap:created      "2006-08-23" ;
+                        ];
+        asc:changes     [
+                        asc:update       "Enforce user defined 'api_handler' config option. THIS CHANGE IS NOT BACKWARDS COMPATIBLE." ;     
+                        asc:bugfix       "Back out changes from dev branch that were accidentally committed." ;
+                        ] .
 
 <http://aaronland.info/perl/net/delicious/Net-Flickr-API-1.4.tar.gz>
         dcterms:isVersionOf <http://aaronland.info/perl/flickr/api/> ;

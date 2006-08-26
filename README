@@ -28,6 +28,18 @@ OPTIONS
 
         A valid Flickr Auth API token.
 
+    * api_handler
+        String. *required*
+
+        The api_handler defines which XML/XPath handler to use to process
+        API responses.
+
+        * LibXML
+            Use XML::LibXML.
+
+        * XPath
+            Use XML::XPath.
+
   reporting
     * enabled
         Boolean.
@@ -82,10 +94,10 @@ OBJECT METHODS
     Returns a *Log::Dispatch* object.
 
 VERSION
-    1.4
+    1.5
 
 DATE
-    $Date: 2006/08/18 03:11:04 $
+    $Date: 2006/08/25 14:24:08 $
 
 AUTHOR
     Aaron Straup Cope <ascope@cpan.org>

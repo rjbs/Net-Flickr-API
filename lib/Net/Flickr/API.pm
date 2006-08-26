@@ -1,11 +1,11 @@
 use strict;
 
-# $Id: API.pm,v 1.13 2006/08/18 03:11:04 asc Exp $
+# $Id: API.pm,v 1.18 2006/08/25 14:24:08 asc Exp $
 # -*-perl-*-
 
 package Net::Flickr::API;
 
-$Net::Flickr::API::VERSION = '1.4';
+$Net::Flickr::API::VERSION = '1.5';
 
 =head1 NAME
 
@@ -46,6 +46,24 @@ A valid Flickr Auth API secret key.
 String. I<required>
 
 A valid Flickr Auth API token.
+
+=item * B<api_handler>
+
+String. I<required>
+
+The B<api_handler> defines which XML/XPath handler to use to process API responses.
+
+=over 4 
+
+=item * B<LibXML>
+
+Use XML::LibXML.
+
+=item * B<XPath>
+
+Use XML::XPath.
+
+=back
 
 =back
 
@@ -342,17 +360,44 @@ sub api_call {
         $self->{'__paused'} = 0;
         
         #
+        # Please for Cal to someday accept the patch to add
+        # handlers to Flickr::API...
+        #
+
+        my $xml = undef;
+
+        if ($self->{cfg}->param("flickr.api_handler") eq "XPath") {
+                eval {
+                        eval "require XML::XPath";
+                        $xml = XML::XPath->new(xml=>$res->content());
+                };
+        }
         
-        if (! $res->success()) {
-                my $err = join(", ", ($res->last_error()));
-                $self->log()->error("failed to parse API response, calling $args->{method} : $err");
+        else {
+                eval {
+                        my $parser = XML::LibXML->new();
+                        $xml = $parser->parse_string($res->content());
+                };
+        }
+        
+        #
+        
+        if (! $xml) {
+                $self->log()->error("failed to parse API response, calling $args->{method} : $@");
                 $self->log()->error($res->content());
                 return undef;
         }
         
         #
         
-        return $res->result();
+        if ($xml->findvalue("/rsp/\@stat") eq "fail") {
+                $self->log()->error(sprintf("[%s] %s (calling calling $args->{method})\n",
+                                            $xml->findvalue("/rsp/err/\@code"),
+                                            $xml->findvalue("/rsp/err/\@msg")));
+                return undef;
+        }
+        
+        return ($@) ? undef : $xml;
 }
 
 =head2 $obj->log()
@@ -368,11 +413,11 @@ sub log {
 
 =head1 VERSION
 
-1.4
+1.5
 
 =head1 DATE
 
-$Date: 2006/08/18 03:11:04 $
+$Date: 2006/08/25 14:24:08 $
 
 =head1 AUTHOR
 
