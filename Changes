@@ -6,10 +6,23 @@
 @prefix asc:     <http://aaronland.info/ns/changefile/> .
                                      
 <>
-        dc:identifier           "$Id: Changes,v 1.9 2006/08/25 14:21:56 asc Exp $" ;
+        dc:identifier           "$Id: Changes,v 1.11 2006/09/01 15:49:37 asc Exp $" ;
         dc:description          "Changes for Net::Flickr::API.pm" ;
         dcterms:references      <http://aaronland.info/perl/net/flickr/api/> .
 
+<http://aaronland.info/perl/net/delicious/Net-Flickr-API-1.6.tar.gz>
+        dcterms:isVersionOf <http://aaronland.info/perl/flickr/api/> ;
+        dcterms:replaces    <http://aaronland.info/perl/net/flickr/api/Net-Flickr-API-1.5.tar.gz>; 
+
+        doap:Version    [
+                        doap:revision     "1.6" ;
+                        doap:created      "2006-09-01" ;
+                        ];
+        asc:changes     [
+                        asc:bugfix        "Fix the fixes, dammit. Sorry about that folks... basically everything between (and including) 1.4 and 1.5x is a complete clusterfuck" ;
+                        asc:bugfix        "Load XML::LibXML so that it... you know, works" ;
+                        asc:update        "Pass method args and XML response to log->verbose()" ;
+                        ] .
 
 <http://aaronland.info/perl/net/delicious/Net-Flickr-API-1.5.tar.gz>
         dcterms:isVersionOf <http://aaronland.info/perl/flickr/api/> ;

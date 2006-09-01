@@ -1,11 +1,11 @@
 use strict;
 
-# $Id: API.pm,v 1.18 2006/08/25 14:24:08 asc Exp $
+# $Id: API.pm,v 1.21 2006/09/01 15:54:37 asc Exp $
 # -*-perl-*-
 
 package Net::Flickr::API;
 
-$Net::Flickr::API::VERSION = '1.5';
+$Net::Flickr::API::VERSION = '1.6';
 
 =head1 NAME
 
@@ -104,6 +104,7 @@ is "info".
 use Config::Simple;
 use Flickr::API;
 use Readonly;
+use Data::Dumper;
 
 use Log::Dispatch;
 use Log::Dispatch::Screen;
@@ -295,23 +296,17 @@ sub api_call {
         }
         
         # send request
-        
-        delete $args->{args}->{api_sig};
+  
+        if (exists($args->{args}->{api_sig})) {
+                delete $args->{args}->{api_sig};
+        }
+
         $args->{args}->{auth_token} = $self->{cfg}->param("flickr.auth_token");
 
         #
 
-        my %sig_args       = %{$args->{args}};
-        $sig_args{api_key} = $self->{api}->{api_key};
-        $sig_args{method}  = $args->{method};
-
-        my $sig = $self->{api}->sign_args(\%sig_args);
-        $args->{args}->{api_sig} = $sig;
-
-        #
-
         my $req = Flickr::API::Request->new($args);
-        $self->log()->debug("calling $args->{method}");
+        $self->log()->debug("calling $args->{method} : " . Dumper($args->{args}));
         
         my $res = $self->{api}->execute_request($req);
         
@@ -364,6 +359,8 @@ sub api_call {
         # handlers to Flickr::API...
         #
 
+        $self->log()->debug($res->content());
+
         my $xml = undef;
 
         if ($self->{cfg}->param("flickr.api_handler") eq "XPath") {
@@ -375,6 +372,7 @@ sub api_call {
         
         else {
                 eval {
+                        eval "require XML::LibXML";
                         my $parser = XML::LibXML->new();
                         $xml = $parser->parse_string($res->content());
                 };
@@ -413,11 +411,11 @@ sub log {
 
 =head1 VERSION
 
-1.5
+1.6
 
 =head1 DATE
 
-$Date: 2006/08/25 14:24:08 $
+$Date: 2006/09/01 15:54:37 $
 
 =head1 AUTHOR
 
@@ -449,4 +447,3 @@ modify it under the same terms as Perl itself.
 return 1;
 
 __END__
-

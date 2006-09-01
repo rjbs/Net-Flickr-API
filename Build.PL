@@ -1,4 +1,4 @@
-# $Id: Build.PL,v 1.4 2006/08/24 01:09:57 asc Exp $
+# $Id: Build.PL,v 1.5 2006/09/01 15:54:37 asc Exp $
 
 use strict;
 use Module::Build;
@@ -13,7 +13,6 @@ my $build = Module::Build->new(module_name => 'Net::Flickr::API',
 				   'Flickr::API'     => '>= 0.08',
 				   'Readonly'        => '0',
 				   'Log::Dispatch'   => '>= 2.10',
-				   # Tries to use XML::LibXML first
 				   'XML::XPath'      => '>= 1.13',
 			       },
 			       build_requires => {
