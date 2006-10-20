@@ -1,11 +1,11 @@
 use strict;
 
-# $Id: API.pm,v 1.21 2006/09/01 15:54:37 asc Exp $
+# $Id: API.pm,v 1.26 2006/10/19 00:55:34 asc Exp $
 # -*-perl-*-
 
 package Net::Flickr::API;
 
-$Net::Flickr::API::VERSION = '1.6';
+$Net::Flickr::API::VERSION = '1.62';
 
 =head1 NAME
 
@@ -19,6 +19,10 @@ Net::Flickr::API - base API class for Net::Flickr::* libraries
 =head1 DESCRIPTION
 
 Base API class for Net::Flickr::* libraries
+
+Net::Flickr::API is a wrapper for Flickr::API that provides support for throttling
+API calls (per second), retries if the API is disabled and marshalling of API responses
+into XML::LibXML or XML::XPath objects.
 
 =head1 OPTIONS
 
@@ -114,6 +118,8 @@ Readonly::Scalar my $PAUSE_SECONDS_UNAVAILABLE => 4;
 Readonly::Scalar my $PAUSE_MAXTRIES            => 10;
 Readonly::Scalar my $PAUSE_ONSTATUS            => 503;
 
+Readonly::Scalar my $RETRY_MAXTRIES            => 10;
+
 =head1 PACKAGE METHODS
 
 =cut
@@ -131,8 +137,9 @@ sub new {
         my $pkg = shift;
         my $cfg = shift;
     
-        my $self = {'__wait'   => time() + $PAUSE_SECONDS_OK,
-                    '__paused' => 0};
+        my $self = {'__wait'    => time() + $PAUSE_SECONDS_OK,
+                    '__paused'  => 0,
+                    '__retries' => 0,};
         
         bless $self,$pkg;
         
@@ -313,89 +320,154 @@ sub api_call {
         # check for 503 status
         
         if ($res->code() eq $PAUSE_ONSTATUS) {
-                
-                # you are in a dark and twisty corridor
-                # where all the errors look the same - 
-                # just give up if we hit this ceiling
-                
-                $self->{'__paused'} ++;
-                
-                if ($self->{'__paused'} > $PAUSE_MAXTRIES) {
-                        
-                        my $errmsg = sprintf("service returned '%d' status %d times; exiting",
-                                             $PAUSE_ONSTATUS,$PAUSE_MAXTRIES);
-                        
-                        $self->log()->error($errmsg);
-                        return undef;
-                }
-                
-                my $retry_after = $res->header("Retry-After");
-                my $debug_msg   = undef;
-                
-                if ($retry_after ) {
-                        $debug_msg = sprintf("service unavailable, requested to retry in %d seconds",
-                                             $retry_after);
-                } 
-                
-                else {
-                        $retry_after = $PAUSE_SECONDS_UNAVAILABLE * $self->{'__paused'};
-                        $debug_msg = sprintf("service unavailable, pause for %.2f seconds",
-                                             $retry_after);
-                }
-                
-                $self->log()->debug($debug_msg);
-                sleep($retry_after);
-                
-                # try, try again
-                
-                return $self->_apicall($args);
+                $res = $self->retry_api_call($args, $res);
         }
         
         $self->{'__wait'}   = time + $PAUSE_SECONDS_OK;
         $self->{'__paused'} = 0;
-        
-        #
-        # Please for Cal to someday accept the patch to add
-        # handlers to Flickr::API...
-        #
+
+        return $self->parse_api_call($args, $res);
+}
+
+sub parse_api_call {
+        my $self = shift;
+        my $args = shift;
+        my $res  = shift;
 
         $self->log()->debug($res->content());
 
-        my $xml = undef;
+        my $xml = $self->_parse_results_xml($res);
 
-        if ($self->{cfg}->param("flickr.api_handler") eq "XPath") {
-                eval {
-                        eval "require XML::XPath";
-                        $xml = XML::XPath->new(xml=>$res->content());
-                };
-        }
-        
-        else {
-                eval {
-                        eval "require XML::LibXML";
-                        my $parser = XML::LibXML->new();
-                        $xml = $parser->parse_string($res->content());
-                };
-        }
-        
-        #
-        
         if (! $xml) {
-                $self->log()->error("failed to parse API response, calling $args->{method} : $@");
+                $self->log()->error("failed to parse API response, calling $args->{method}");
                 $self->log()->error($res->content());
                 return undef;
         }
+
+        if ($xml->findvalue("/rsp/\@stat") eq "fail") {
+                my $code = $xml->findvalue("/rsp/err/\@code");
+
+                $self->log()->error(sprintf("[%s] %s (calling $args->{method})\n",
+                                            $code,
+                                            $xml->findvalue("/rsp/err/\@msg")));
+
+                if ($code==0) {
+                        $self->log()->info(sprintf("api disabled attempting %s/%s tries to see if it's come back up", $self->{'__retries'}, $RETRY_MAXTRIES));
+                        return $self->api_disabled($args, $res);                
+                }
+        }
+
+        $self->{'__retries'} = 0;
+
+        return ($@) ? undef : $xml;
+}
+
+sub _parse_results_xml {
+        my $self = shift;
+        my $res  = shift;
+
+        my $xml = undef;
+
+        #
+        # Please for Cal to someday accept the patch to add
+        # response handlers to Flickr::API...
+        #
+
+        if ($self->{cfg}->param("flickr.api_handler") eq "XPath") {
+                eval "require XML::XPath";
+
+                if (! $@) {
+                        eval {
+                                $xml = XML::XPath->new(xml=>$res->content());
+                        };
+                }
+        }
+        
+        else {
+                eval "require XML::LibXML";
+
+                if (! $@) {
+                        eval {
+                                my $parser = XML::LibXML->new();
+                                $xml = $parser->parse_string($res->content());
+                        };
+                }
+        }
         
         #
-        
-        if ($xml->findvalue("/rsp/\@stat") eq "fail") {
-                $self->log()->error(sprintf("[%s] %s (calling calling $args->{method})\n",
-                                            $xml->findvalue("/rsp/err/\@code"),
-                                            $xml->findvalue("/rsp/err/\@msg")));
+
+        if (! $xml) {
+                self->log()->error("XML parse error : $@");
                 return undef;
         }
         
-        return ($@) ? undef : $xml;
+        #
+
+        return $xml;
+}
+
+sub api_disabled {
+        my $self = shift;
+        my $args = shift;
+        my $res  = shift;
+
+        $self->{'__retries'} ++;
+
+        if ($self->{'__retries'} > $RETRY_MAXTRIES) {
+                $self->log()->critical(sprintf("API still down after %s tries - exiting", $RETRY_MAXTRIES));
+                exit;
+        }
+
+        $res = $self->retry_api_call($args, $res);
+
+        if (! $res) {
+                $self->log()->critical("Returned false during 'api disabled' retry. That can only be bad - exiting");
+                exit;
+        }
+
+        return $res;
+}
+
+sub retry_api_call {
+        my $self = shift;
+        my $args = shift;
+        my $res  = shift;
+
+        # you are in a dark and twisty corridor
+        # where all the errors look the same - 
+        # just give up if we hit this ceiling
+        
+        $self->{'__paused'} ++;
+        
+        if ($self->{'__paused'} > $PAUSE_MAXTRIES) {
+                
+                my $errmsg = sprintf("service returned '%d' status %d times; exiting",
+                                     $PAUSE_ONSTATUS, $PAUSE_MAXTRIES);
+                
+                $self->log()->error($errmsg);
+                return undef;
+        }
+        
+        my $retry_after = $res->header("Retry-After");
+        my $debug_msg   = undef;
+        
+        if ($retry_after ) {
+                $debug_msg = sprintf("service unavailable, requested to retry in %d seconds",
+                                     $retry_after);
+        } 
+        
+        else {
+                $retry_after = $PAUSE_SECONDS_UNAVAILABLE * $self->{'__paused'};
+                $debug_msg = sprintf("service unavailable, pause for %.2f seconds",
+                                     $retry_after);
+        }
+        
+        $self->log()->debug($debug_msg);
+        sleep($retry_after);
+        
+        # try, try again
+        
+        return $self->api_call($args);
 }
 
 =head2 $obj->log()
@@ -411,11 +483,11 @@ sub log {
 
 =head1 VERSION
 
-1.6
+1.62
 
 =head1 DATE
 
-$Date: 2006/09/01 15:54:37 $
+$Date: 2006/10/19 00:55:34 $
 
 =head1 AUTHOR
 
@@ -437,7 +509,7 @@ Please report all bugs via http://rt.cpan.org/
 
 =head1 LICENSE
 
-Copyright (c) 2005 Aaron Straup Cope. All Rights Reserved.
+Copyright (c) 2005-2006 Aaron Straup Cope. All Rights Reserved.
 
 This is free software. You may redistribute it and/or
 modify it under the same terms as Perl itself.

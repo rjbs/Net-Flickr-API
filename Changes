@@ -6,9 +6,36 @@
 @prefix asc:     <http://aaronland.info/ns/changefile/> .
                                      
 <>
-        dc:identifier           "$Id: Changes,v 1.11 2006/09/01 15:49:37 asc Exp $" ;
+        dc:identifier           "$Id: Changes,v 1.13 2006/10/19 00:55:33 asc Exp $" ;
         dc:description          "Changes for Net::Flickr::API.pm" ;
         dcterms:references      <http://aaronland.info/perl/net/flickr/api/> .
+
+<http://aaronland.info/perl/net/delicious/Net-Flickr-API-1.62.tar.gz>
+        dcterms:isVersionOf <http://aaronland.info/perl/flickr/api/> ;
+        dcterms:replaces    <http://aaronland.info/perl/net/flickr/api/Net-Flickr-API-1.61.tar.gz>; 
+
+        doap:Version    [
+                        doap:revision     "1.62" ;
+                        doap:created      "2006-10-19" ;
+                        ];
+        asc:changes     [
+                        asc:update        "Added _parse_results_xml; updated parse_api_call accordingly" ;
+                        ] .
+
+<http://aaronland.info/perl/net/delicious/Net-Flickr-API-1.61.tar.gz>
+        dcterms:isVersionOf <http://aaronland.info/perl/flickr/api/> ;
+        dcterms:replaces    <http://aaronland.info/perl/net/flickr/api/Net-Flickr-API-1.6.tar.gz>; 
+
+        doap:Version    [
+                        doap:revision     "1.61" ;
+                        doap:created      "2006-09-06" ;
+                        ];
+        asc:changes     [
+                        asc:bugfix        "Typo in error reporting" ;
+                        asc:bugfix        "Typo in method name" ;
+                        asc:update        "Added retry attempts if API is full-on disabled - if these fail THE PACKAGE WILL exit()" ;
+                        asc:update        "Updated POD" ;
+                        ] .
 
 <http://aaronland.info/perl/net/delicious/Net-Flickr-API-1.6.tar.gz>
         dcterms:isVersionOf <http://aaronland.info/perl/flickr/api/> ;

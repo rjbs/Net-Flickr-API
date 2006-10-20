@@ -8,6 +8,10 @@ SYNOPSIS
 DESCRIPTION
     Base API class for Net::Flickr::* libraries
 
+    Net::Flickr::API is a wrapper for Flickr::API that provides support for
+    throttling API calls (per second), retries if the API is disabled and
+    marshalling of API responses into XML::LibXML or XML::XPath objects.
+
 OPTIONS
     Options are passed to Net::Flickr::Backup using a Config::Simple object
     or a valid Config::Simple config file. Options are grouped by "block".
@@ -94,10 +98,10 @@ OBJECT METHODS
     Returns a *Log::Dispatch* object.
 
 VERSION
-    1.6
+    1.62
 
 DATE
-    $Date: 2006/09/01 15:54:37 $
+    $Date: 2006/10/19 00:55:34 $
 
 AUTHOR
     Aaron Straup Cope <ascope@cpan.org>
@@ -115,7 +119,7 @@ BUGS
     Please report all bugs via http://rt.cpan.org/
 
 LICENSE
-    Copyright (c) 2005 Aaron Straup Cope. All Rights Reserved.
+    Copyright (c) 2005-2006 Aaron Straup Cope. All Rights Reserved.
 
     This is free software. You may redistribute it and/or modify it under
     the same terms as Perl itself.
