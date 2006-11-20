@@ -6,9 +6,22 @@
 @prefix asc:     <http://aaronland.info/ns/changefile/> .
                                      
 <>
-        dc:identifier           "$Id: Changes,v 1.13 2006/10/19 00:55:33 asc Exp $" ;
+        dc:identifier           "$Id: Changes,v 1.15 2006/11/19 21:45:27 asc Exp $" ;
         dc:description          "Changes for Net::Flickr::API.pm" ;
         dcterms:references      <http://aaronland.info/perl/net/flickr/api/> .
+
+<http://aaronland.info/perl/net/delicious/Net-Flickr-API-1.63.tar.gz>
+        dcterms:isVersionOf <http://aaronland.info/perl/flickr/api/> ;
+        dcterms:replaces    <http://aaronland.info/perl/net/flickr/api/Net-Flickr-API-1.62.tar.gz>; 
+
+        doap:Version    [
+                        doap:revision     "1.63" ;
+                        doap:created      "2006-11-19" ;
+                        ];
+        asc:changes     [
+                        asc:update        "Replaced all calls to $xml->findvalue() with $xml->find()->string_value() to account for XML::XPath::Literal string overloading" ;
+                        asc:update        "Trap calls to Flickr::API->execute_method()" ;
+                        ] .
 
 <http://aaronland.info/perl/net/delicious/Net-Flickr-API-1.62.tar.gz>
         dcterms:isVersionOf <http://aaronland.info/perl/flickr/api/> ;

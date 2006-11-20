@@ -1,11 +1,11 @@
 use strict;
 
-# $Id: API.pm,v 1.26 2006/10/19 00:55:34 asc Exp $
+# $Id: API.pm,v 1.28 2006/11/19 21:45:27 asc Exp $
 # -*-perl-*-
 
 package Net::Flickr::API;
 
-$Net::Flickr::API::VERSION = '1.62';
+$Net::Flickr::API::VERSION = '1.63';
 
 =head1 NAME
 
@@ -154,7 +154,7 @@ sub init {
         my $self = shift;
         my $cfg  = shift;
         
-        $self->{cfg} = (UNIVERSAL::isa($cfg,"Config::Simple")) ? $cfg : Config::Simple->new($cfg);
+        $self->{cfg} = (UNIVERSAL::isa($cfg, "Config::Simple")) ? $cfg : Config::Simple->new($cfg);
         
         if ($self->{cfg}->param("flickr.api_handler") !~ /^(?:XPath|LibXML)$/) {
                 warn "Invalid API handler";
@@ -171,14 +171,14 @@ sub init {
                 
                 if ($args{'level'} eq "error") {
                         
-                        my ($ln,$sub) = (caller(4))[2,3];
+                        my ($ln, $sub) = (caller(4))[2,3];
                         $sub =~ s/.*:://;
                         
                         return sprintf("[%s][%s, ln%d] %s\n",
-                                       $args{'level'},$sub,$ln,$msg);
+                                       $args{'level'}, $sub, $ln, $msg);
                 }
                 
-                return sprintf("[%s] %s\n",$args{'level'},$msg);
+                return sprintf("[%s] %s\n", $args{'level'}, $msg);
         };
         
         my $logger = Log::Dispatch->new(callbacks=>$log_fmt);
@@ -304,21 +304,35 @@ sub api_call {
         
         # send request
   
-        if (exists($args->{args}->{api_sig})) {
-                delete $args->{args}->{api_sig};
+        if (exists($args->{'args'}->{'api_sig'})) {
+                delete $args->{'args'}->{'api_sig'};
         }
 
-        $args->{args}->{auth_token} = $self->{cfg}->param("flickr.auth_token");
+        $args->{'args'}->{'auth_token'} = $self->{cfg}->param("flickr.auth_token");
 
         #
 
         my $req = Flickr::API::Request->new($args);
+        my $res = undef;
+
         $self->log()->debug("calling $args->{method} : " . Dumper($args->{args}));
         
-        my $res = $self->{api}->execute_request($req);
-        
+        eval {
+                $res = $self->{'api'}->execute_request($req);
+        };
+
+        if ($@) {
+                $self->log()->error("Fatal error calling the Flickr API, $@");
+
+                $self->{'__wait'}   = time + $PAUSE_SECONDS_OK;
+                $self->{'__paused'} = 0;
+                return undef;
+        }
+
+        #
         # check for 503 status
-        
+        #
+
         if ($res->code() eq $PAUSE_ONSTATUS) {
                 $res = $self->retry_api_call($args, $res);
         }
@@ -344,12 +358,15 @@ sub parse_api_call {
                 return undef;
         }
 
-        if ($xml->findvalue("/rsp/\@stat") eq "fail") {
-                my $code = $xml->findvalue("/rsp/err/\@code");
+        my $stat = $xml->find("/rsp/\@stat")->string_value();
+
+        if ($stat eq "fail") {
+                my $code = $xml->findvalue("/rsp/err/\@code")->string_value();
+                my $msg  = $xml->findvalue("/rsp/err/\@msg")->string_value();
 
                 $self->log()->error(sprintf("[%s] %s (calling $args->{method})\n",
                                             $code,
-                                            $xml->findvalue("/rsp/err/\@msg")));
+                                            $msg));
 
                 if ($code==0) {
                         $self->log()->info(sprintf("api disabled attempting %s/%s tries to see if it's come back up", $self->{'__retries'}, $RETRY_MAXTRIES));
@@ -483,11 +500,11 @@ sub log {
 
 =head1 VERSION
 
-1.62
+1.63
 
 =head1 DATE
 
-$Date: 2006/10/19 00:55:34 $
+$Date: 2006/11/19 21:45:27 $
 
 =head1 AUTHOR
 

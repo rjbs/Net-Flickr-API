@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name: Net-Flickr-API
-version: 1.62
+version: 1.63
 author:
   - Aaron Straup Cope E<lt>ascope@cpan.orgE<gt>
 abstract: base API class for Net::Flickr::* libraries
