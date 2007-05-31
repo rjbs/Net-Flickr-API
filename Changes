@@ -6,9 +6,34 @@
 @prefix asc:     <http://aaronland.info/ns/changefile/> .
                                      
 <>
-        dc:identifier           "$Id: Changes,v 1.15 2006/11/19 21:45:27 asc Exp $" ;
+        dc:identifier           "$Id: Changes,v 1.17 2007/05/31 14:55:38 asc Exp $" ;
         dc:description          "Changes for Net::Flickr::API.pm" ;
         dcterms:references      <http://aaronland.info/perl/net/flickr/api/> .
+
+<http://aaronland.info/perl/net/delicious/Net-Flickr-API-1.65.tar.gz>
+        dcterms:isVersionOf <http://aaronland.info/perl/flickr/api/> ;
+        dcterms:replaces    <http://aaronland.info/perl/net/flickr/api/Net-Flickr-API-1.64.tar.gz>; 
+
+        doap:Version    [
+                        doap:revision     "1.65" ;
+                        doap:created      "2007-05-31" ;
+                        ];
+        asc:changes     [
+                        asc:bugfix        "That would be 'undef' $self not 'unself' $self..." ;
+                        asc:comment       "Added MANIFEST.SKIP" ;
+                        ] .
+
+<http://aaronland.info/perl/net/delicious/Net-Flickr-API-1.64.tar.gz>
+        dcterms:isVersionOf <http://aaronland.info/perl/flickr/api/> ;
+        dcterms:replaces    <http://aaronland.info/perl/net/flickr/api/Net-Flickr-API-1.63.tar.gz>; 
+
+        doap:Version    [
+                        doap:revision     "1.64" ;
+                        doap:created      "2006-12-08" ;
+                        ];
+        asc:changes     [
+                        asc:bugfix        "Fixed a syntax error :-(" ;
+                        ] .
 
 <http://aaronland.info/perl/net/delicious/Net-Flickr-API-1.63.tar.gz>
         dcterms:isVersionOf <http://aaronland.info/perl/flickr/api/> ;

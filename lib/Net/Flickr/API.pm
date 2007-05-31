@@ -1,11 +1,11 @@
 use strict;
 
-# $Id: API.pm,v 1.28 2006/11/19 21:45:27 asc Exp $
+# $Id: API.pm,v 1.30 2007/05/31 14:55:38 asc Exp $
 # -*-perl-*-
 
 package Net::Flickr::API;
 
-$Net::Flickr::API::VERSION = '1.63';
+$Net::Flickr::API::VERSION = '1.65';
 
 =head1 NAME
 
@@ -144,7 +144,7 @@ sub new {
         bless $self,$pkg;
         
         if (! $self->init($cfg)) {
-                unself $self;
+                undef $self;
         }
         
         return $self;
@@ -414,7 +414,7 @@ sub _parse_results_xml {
         #
 
         if (! $xml) {
-                self->log()->error("XML parse error : $@");
+                $self->log()->error("XML parse error : $@");
                 return undef;
         }
         
@@ -500,11 +500,11 @@ sub log {
 
 =head1 VERSION
 
-1.63
+1.65
 
 =head1 DATE
 
-$Date: 2006/11/19 21:45:27 $
+$Date: 2007/05/31 14:55:38 $
 
 =head1 AUTHOR
 
@@ -526,7 +526,7 @@ Please report all bugs via http://rt.cpan.org/
 
 =head1 LICENSE
 
-Copyright (c) 2005-2006 Aaron Straup Cope. All Rights Reserved.
+Copyright (c) 2005-2007 Aaron Straup Cope. All Rights Reserved.
 
 This is free software. You may redistribute it and/or
 modify it under the same terms as Perl itself.
