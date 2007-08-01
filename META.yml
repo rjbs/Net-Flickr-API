@@ -1,8 +1,25 @@
---- #YAML:1.0
+---
 name: Net-Flickr-API
-version: 1.65
+version: 1.66
 author:
-  - Aaron Straup Cope E<lt>ascope@cpan.orgE<gt>
+  - 'Aaron Straup Cope E<lt>ascope@cpan.orgE<gt>'
 abstract: base API class for Net::Flickr::* libraries
 license: perl
-generated_by: Module::Build version 0.2611, without YAML.pm
+resources:
+  license: http://dev.perl.org/licenses/
+requires:
+  Config::Simple: 0
+  Flickr::API: '>= 0.08'
+  Log::Dispatch: '>= 2.10'
+  Readonly: 0
+  XML::XPath: '>= 1.13'
+build_requires:
+  Test::Simple: '>= 0.47'
+provides:
+  Net::Flickr::API:
+    file: lib/Net/Flickr/API.pm
+    version: 1.66
+generated_by: Module::Build version 0.2808
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.2.html
+  version: 1.2

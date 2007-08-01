@@ -6,9 +6,21 @@
 @prefix asc:     <http://aaronland.info/ns/changefile/> .
                                      
 <>
-        dc:identifier           "$Id: Changes,v 1.17 2007/05/31 14:55:38 asc Exp $" ;
+        dc:identifier           "$Id: Changes,v 1.18 2007/07/31 13:22:58 asc Exp $" ;
         dc:description          "Changes for Net::Flickr::API.pm" ;
         dcterms:references      <http://aaronland.info/perl/net/flickr/api/> .
+
+<http://aaronland.info/perl/net/delicious/Net-Flickr-API-1.66.tar.gz>
+        dcterms:isVersionOf <http://aaronland.info/perl/flickr/api/> ;
+        dcterms:replaces    <http://aaronland.info/perl/net/flickr/api/Net-Flickr-API-1.65.tar.gz>; 
+
+        doap:Version    [
+                        doap:revision     "1.66" ;
+                        doap:created      "2007-08-01" ;
+                        ];
+        asc:changes     [
+                        asc:bugfix        "Don't call 'string_value' on @attrs, duh (RT #28576)" ;
+                        ] .
 
 <http://aaronland.info/perl/net/delicious/Net-Flickr-API-1.65.tar.gz>
         dcterms:isVersionOf <http://aaronland.info/perl/flickr/api/> ;

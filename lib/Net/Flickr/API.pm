@@ -1,11 +1,11 @@
 use strict;
 
-# $Id: API.pm,v 1.30 2007/05/31 14:55:38 asc Exp $
+# $Id: API.pm,v 1.32 2007/07/31 13:22:58 asc Exp $
 # -*-perl-*-
 
 package Net::Flickr::API;
 
-$Net::Flickr::API::VERSION = '1.65';
+$Net::Flickr::API::VERSION = '1.66';
 
 =head1 NAME
 
@@ -361,8 +361,8 @@ sub parse_api_call {
         my $stat = $xml->find("/rsp/\@stat")->string_value();
 
         if ($stat eq "fail") {
-                my $code = $xml->findvalue("/rsp/err/\@code")->string_value();
-                my $msg  = $xml->findvalue("/rsp/err/\@msg")->string_value();
+                my $code = $xml->findvalue("/rsp/err/\@code");
+                my $msg  = $xml->findvalue("/rsp/err/\@msg");
 
                 $self->log()->error(sprintf("[%s] %s (calling $args->{method})\n",
                                             $code,
@@ -500,11 +500,11 @@ sub log {
 
 =head1 VERSION
 
-1.65
+1.66
 
 =head1 DATE
 
-$Date: 2007/05/31 14:55:38 $
+$Date: 2007/07/31 13:22:58 $
 
 =head1 AUTHOR
 

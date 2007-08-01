@@ -98,10 +98,10 @@ OBJECT METHODS
     Returns a *Log::Dispatch* object.
 
 VERSION
-    1.65
+    1.66
 
 DATE
-    $Date: 2007/05/31 14:55:38 $
+    $Date: 2007/07/31 13:22:58 $
 
 AUTHOR
     Aaron Straup Cope <ascope@cpan.org>
