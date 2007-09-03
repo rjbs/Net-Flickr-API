@@ -1,11 +1,11 @@
 use strict;
 
-# $Id: API.pm,v 1.32 2007/07/31 13:22:58 asc Exp $
+# $Id: API.pm,v 1.33 2007/09/02 18:32:30 asc Exp $
 # -*-perl-*-
 
 package Net::Flickr::API;
 
-$Net::Flickr::API::VERSION = '1.66';
+$Net::Flickr::API::VERSION = '1.67';
 
 =head1 NAME
 
@@ -343,6 +343,57 @@ sub api_call {
         return $self->parse_api_call($args, $res);
 }
 
+=head2 $obj->get_auth()
+
+Return an XML I<node> element containing the Flickr auth token information for
+the current object.
+
+Returns undef if no token information is present.
+
+=cut
+
+sub get_auth {
+        my $self = shift;
+        
+        if (! $self->{'__auth'}) {
+                my $auth = $self->api_call({"method" => "flickr.auth.checkToken"});
+                
+                if (! $auth) {
+                        return undef;
+                }
+                
+                my $nsid = $auth->find("/rsp/auth/user/\@nsid")->string_value();
+                
+                if (! $nsid) {
+                        $self->log()->error("unabled to determine ID for token");
+                        return undef;
+                }
+                
+                $self->{'__auth'} = $auth;
+        }
+        
+        return $self->{'__auth'};
+}
+
+=head2 $obj->get_auth_nsid()
+
+Return the Flickr NSID of the user associated with the Flickr auth token information
+for the current object.
+
+Returns undef if no token information is present.
+
+=cut
+
+sub get_auth_nsid {
+        my $self = shift;
+
+        if (my $auth = $self->get_auth()){
+                return $auth->find("/rsp/auth/user/\@nsid")->string_value();
+        }
+
+        return undef;
+}
+
 sub parse_api_call {
         my $self = shift;
         my $args = shift;
@@ -500,11 +551,11 @@ sub log {
 
 =head1 VERSION
 
-1.66
+1.67
 
 =head1 DATE
 
-$Date: 2007/07/31 13:22:58 $
+$Date: 2007/09/02 18:32:30 $
 
 =head1 AUTHOR
 

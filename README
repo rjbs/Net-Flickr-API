@@ -94,14 +94,26 @@ OBJECT METHODS
     Otherwise it will return a *XML::LibXML::Document* object (if
     XML::LibXML is installed) or a *XML::XPath* object.
 
+  $obj->get_auth()
+    Return an XML *node* element containing the Flickr auth token
+    information for the current object.
+
+    Returns undef if no token information is present.
+
+  $obj->get_auth_nsid()
+    Return the Flickr NSID of the user associated with the Flickr auth token
+    information for the current object.
+
+    Returns undef if no token information is present.
+
   $obj->log()
     Returns a *Log::Dispatch* object.
 
 VERSION
-    1.66
+    1.67
 
 DATE
-    $Date: 2007/07/31 13:22:58 $
+    $Date: 2007/09/02 18:32:30 $
 
 AUTHOR
     Aaron Straup Cope <ascope@cpan.org>
