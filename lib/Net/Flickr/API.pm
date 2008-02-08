@@ -1,11 +1,11 @@
 use strict;
 
-# $Id: API.pm,v 1.33 2007/09/02 18:32:30 asc Exp $
+# $Id: API.pm,v 1.34 2008/02/08 08:01:14 asc Exp $
 # -*-perl-*-
 
 package Net::Flickr::API;
 
-$Net::Flickr::API::VERSION = '1.67';
+$Net::Flickr::API::VERSION = '1.68';
 
 =head1 NAME
 
@@ -399,13 +399,13 @@ sub parse_api_call {
         my $args = shift;
         my $res  = shift;
 
-        $self->log()->debug($res->content());
+        $self->log()->debug($res->decoded_content());
 
         my $xml = $self->_parse_results_xml($res);
 
         if (! $xml) {
                 $self->log()->error("failed to parse API response, calling $args->{method}");
-                $self->log()->error($res->content());
+                $self->log()->error($res->decoded_content());
                 return undef;
         }
 
@@ -446,7 +446,7 @@ sub _parse_results_xml {
 
                 if (! $@) {
                         eval {
-                                $xml = XML::XPath->new(xml=>$res->content());
+                                $xml = XML::XPath->new(xml=>$res->decoded_content());
                         };
                 }
         }
@@ -457,7 +457,7 @@ sub _parse_results_xml {
                 if (! $@) {
                         eval {
                                 my $parser = XML::LibXML->new();
-                                $xml = $parser->parse_string($res->content());
+                                $xml = $parser->parse_string($res->decoded_content());
                         };
                 }
         }
@@ -551,11 +551,11 @@ sub log {
 
 =head1 VERSION
 
-1.67
+1.68
 
 =head1 DATE
 
-$Date: 2007/09/02 18:32:30 $
+$Date: 2008/02/08 08:01:14 $
 
 =head1 AUTHOR
 
@@ -577,7 +577,7 @@ Please report all bugs via http://rt.cpan.org/
 
 =head1 LICENSE
 
-Copyright (c) 2005-2007 Aaron Straup Cope. All Rights Reserved.
+Copyright (c) 2005-2008 Aaron Straup Cope. All Rights Reserved.
 
 This is free software. You may redistribute it and/or
 modify it under the same terms as Perl itself.
