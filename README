@@ -106,14 +106,27 @@ OBJECT METHODS
 
     Returns undef if no token information is present.
 
+  $obj->upload(\%args)
+    This is a helper method that simply wraps calls to the *Flickr::Upload*
+    upload method. All the arguments are the same. For complete
+    documentation please consult:
+
+    <http://search.cpan.org/dist/Flickr-Upload/Upload.pm#upload>
+
+    (Note: There's no need to pass an auth_token argument as the wrapper
+    will take care of for you.)
+
+    Returns a photo ID (or a ticket ID if the call is asynchronous) on
+    success or false if there was a problem.
+
   $obj->log()
     Returns a *Log::Dispatch* object.
 
 VERSION
-    1.68
+    1.69
 
 DATE
-    $Date: 2008/02/08 08:01:14 $
+    $Date: 2009/08/02 17:16:12 $
 
 AUTHOR
     Aaron Straup Cope <ascope@cpan.org>

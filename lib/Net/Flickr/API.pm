@@ -1,11 +1,11 @@
 use strict;
 
-# $Id: API.pm,v 1.34 2008/02/08 08:01:14 asc Exp $
+# $Id: API.pm,v 1.35 2009/08/02 17:16:12 asc Exp $
 # -*-perl-*-
 
 package Net::Flickr::API;
 
-$Net::Flickr::API::VERSION = '1.68';
+$Net::Flickr::API::VERSION = '1.69';
 
 =head1 NAME
 
@@ -106,7 +106,10 @@ is "info".
 =cut
 
 use Config::Simple;
+
 use Flickr::API;
+use Flickr::Upload;
+
 use Readonly;
 use Data::Dumper;
 
@@ -538,6 +541,44 @@ sub retry_api_call {
         return $self->api_call($args);
 }
 
+=head2 $obj->upload(\%args)
+
+This is a helper method that simply wraps calls to the I<Flickr::Upload> upload
+method. All the arguments are the same. For complete documentation please consult:
+
+L<http://search.cpan.org/dist/Flickr-Upload/Upload.pm#upload>
+
+(Note: There's no need to pass an auth_token argument as the wrapper will take care
+of for you.)
+
+Returns a photo ID (or a ticket ID if the call is asynchronous) on success or false
+if there was a problem.
+
+=cut
+
+sub upload {
+        my $self = shift;
+        my $args = shift;
+
+        $args->{'auth_token'} = $self->{cfg}->param("flickr.auth_token");
+
+        my $ua = Flickr::Upload->new({'key' => $self->{cfg}->param("flickr.api_key"),
+                                      'secret' => $self->{cfg}->param("flickr.api_secret")});
+        
+        my $id = undef;
+
+        eval {
+                $id = $ua->upload(%$args);
+        };
+
+        if ($@){
+                $self->log()->error("upload failed: $@");
+                return 0;
+        }
+
+        return $id;
+}
+
 =head2 $obj->log()
 
 Returns a I<Log::Dispatch> object.
@@ -551,11 +592,11 @@ sub log {
 
 =head1 VERSION
 
-1.68
+1.69
 
 =head1 DATE
 
-$Date: 2008/02/08 08:01:14 $
+$Date: 2009/08/02 17:16:12 $
 
 =head1 AUTHOR
 

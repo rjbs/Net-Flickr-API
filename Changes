@@ -6,9 +6,22 @@
 @prefix asc:     <http://aaronland.info/ns/changefile/> .
                                      
 <>
-        dc:identifier           "$Id: Changes,v 1.21 2008/02/08 08:01:14 asc Exp $" ;
+        dc:identifier           "$Id: Changes,v 1.22 2009/08/02 17:16:12 asc Exp $" ;
         dc:description          "Changes for Net::Flickr::API.pm" ;
         dcterms:references      <http://aaronland.info/perl/net/flickr/api/> .
+
+<http://aaronland.info/perl/net/delicious/Net-Flickr-API-1.69.tar.gz>
+        dcterms:isVersionOf <http://aaronland.info/perl/flickr/api/> ;
+        dcterms:replaces    <http://aaronland.info/perl/net/flickr/api/Net-Flickr-API-1.68.tar.gz>; 
+
+        doap:Version    [
+                        doap:revision     "1.69" ;
+                        doap:created      "2009-08-02" ;
+                        ];
+        asc:changes     [
+                        asc:update        "Add a wrapper method around Flickr::Upload" ;
+                        asc:update        "Require Flickr::API 1.02";
+                        ] .
 
 <http://aaronland.info/perl/net/delicious/Net-Flickr-API-1.68.tar.gz>
         dcterms:isVersionOf <http://aaronland.info/perl/flickr/api/> ;
