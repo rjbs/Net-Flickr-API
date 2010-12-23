@@ -5,7 +5,7 @@ use strict;
 
 package Net::Flickr::API;
 
-$Net::Flickr::API::VERSION = '1.69';
+$Net::Flickr::API::VERSION = '1.7';
 
 =head1 NAME
 
@@ -223,16 +223,16 @@ sub init {
 
                 my $reporter = $report_pkg->new(%report_args);
 
-                if ($!) {
+                if (! $reporter) {
                         warn "Failed to instantiate $report_pkg, $!";
                         return 0;
                 }
 
                 $logger->add($reporter);
         }
-            
+
         $self->{'__logger'} = $logger;
-        
+
         #
         
         $self->{api} = Flickr::API->new({key     => $self->{cfg}->param("flickr.api_key"),
@@ -592,7 +592,7 @@ sub log {
 
 =head1 VERSION
 
-1.69
+1.7
 
 =head1 DATE
 
