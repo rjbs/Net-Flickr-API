@@ -8,3 +8,5 @@ MANIFEST.SKIP
 META.yml
 README
 t/00-load.t
+t/lib/Test/NFA.pm
+t/retry.t
