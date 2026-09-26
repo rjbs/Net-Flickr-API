@@ -30,43 +30,43 @@ retry_ok(desc      => "plain success",
          responses => [ response(200) ],
          ok        => 1,
          calls     => 1,
-         sleeps    => [2]);
+         sleeps    => []);
 
 retry_ok(desc      => "429 then success, no Retry-After",
          responses => [ response(429), response(200) ],
          ok        => 1,
          calls     => 2,
-         sleeps    => [2, 4]);
+         sleeps    => [4]);
 
 retry_ok(desc      => "503 twice then success, growing backoff",
          responses => [ response(503), response(503), response(200) ],
          ok        => 1,
          calls     => 3,
-         sleeps    => [2, 4, 8]);
+         sleeps    => [4, 8]);
 
 retry_ok(desc      => "429 with Retry-After seconds",
          responses => [ response(429, 'Retry-After' => 30), response(200) ],
          ok        => 1,
          calls     => 2,
-         sleeps    => [2, 30]);
+         sleeps    => [30]);
 
 retry_ok(desc      => "503 with Retry-After in the past",
          responses => [ response(503, 'Retry-After' => 'Thu, 01 Jan 2004 00:00:00 GMT'),
                         response(200) ],
          ok        => 1,
          calls     => 2,
-         sleeps    => [2, 0]);
+         sleeps    => [0]);
 
 retry_ok(desc      => "other errors are not retried",
          responses => [ response(500) ],
          ok        => 0,
          calls     => 1,
-         sleeps    => [2]);
+         sleeps    => []);
 
 retry_ok(desc      => "give up after ten retries",
          responses => [ map { response(429, 'Retry-After' => 1) } 1 .. 11 ],
          ok        => 0,
          calls     => 11,
-         sleeps    => [2, (1) x 10 ]);
+         sleeps    => [(1) x 10 ]);
 
 done_testing;
