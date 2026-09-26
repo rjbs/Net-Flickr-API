@@ -5,7 +5,7 @@ use strict;
 
 package Net::Flickr::API;
 
-$Net::Flickr::API::VERSION = '1.7';
+$Net::Flickr::API::VERSION = '1.8';
 
 =head1 NAME
 
@@ -683,7 +683,7 @@ sub log {
 
 =head1 VERSION
 
-1.7
+1.8
 
 =head1 DATE
 
