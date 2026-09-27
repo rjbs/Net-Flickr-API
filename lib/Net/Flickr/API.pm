@@ -588,8 +588,22 @@ sub parse_api_call {
 
                 if ($code==0) {
                         $self->log()->info(sprintf("api disabled attempting %s/%s tries to see if it's come back up", $self->{'__retries'}, $RETRY_MAXTRIES));
-                        return $self->api_disabled($args, $res);                
+                        return $self->api_disabled($args, $res);
                 }
+
+                $self->{'__retries'} = 0;
+                return undef;
+        }
+
+        # Anything but stat="ok" is not a Flickr success reply, even if it
+        # parsed: an XML error page from a proxy, for example.
+
+        if ($stat ne "ok") {
+                $self->log()->error("API response has no stat=\"ok\", calling $args->{method}");
+                $self->log()->error($res->decoded_content());
+
+                $self->{'__retries'} = 0;
+                return undef;
         }
 
         $self->{'__retries'} = 0;

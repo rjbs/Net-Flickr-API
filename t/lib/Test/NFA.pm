@@ -7,7 +7,7 @@ package Test::NFA;
 # whose Flickr client replays canned responses. -- claude, 2026-09-26
 
 use Exporter 'import';
-our @EXPORT_OK = qw(new_api response disabled timeout internal_error);
+our @EXPORT_OK = qw(new_api response disabled flickr_error timeout internal_error);
 
 use Config::Simple;
 use HTTP::Response;
@@ -23,10 +23,18 @@ sub response {
         return HTTP::Response->new($code, "status $code", \@headers, $body);
 }
 
-# A Flickr "API disabled" failure, which comes with a 200.
-sub disabled {
+# A Flickr API error, which comes with a 200.
+sub flickr_error {
+        my $code = shift;
+        my $msg  = shift;
+
         return HTTP::Response->new(200, "OK", [],
-                '<rsp stat="fail"><err code="0" msg="Sorry, the Flickr API service is not currently available." /></rsp>');
+                qq{<rsp stat="fail"><err code="$code" msg="$msg" /></rsp>});
+}
+
+# The error Flickr gives when the whole API is disabled.
+sub disabled {
+        return flickr_error(0, "Sorry, the Flickr API service is not currently available.");
 }
 
 # A response LWP makes up itself when it gets none from Flickr.

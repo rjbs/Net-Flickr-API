@@ -22,6 +22,8 @@
                         asc:update        "Retry a request that timed out, up to three times" ;
                         asc:bugfix        "When the API stays disabled, log an error and return undef instead of calling exit" ;
                         asc:bugfix        "With the XPath handler, a response that isn't XML (like an LWP timeout) is a logged failure instead of a fatal error" ;
+                        asc:bugfix        "api_call returns undef for a Flickr API error (stat=\"fail\"), as documented, instead of returning the error document" ;
+                        asc:bugfix        "api_call returns undef for XML that isn't a Flickr reply (no stat=\"ok\")" ;
                         ] .
 
 <https://cpan.metacpan.org/authors/id/R/RJ/RJBS/Net-Flickr-API-1.8.tar.gz>

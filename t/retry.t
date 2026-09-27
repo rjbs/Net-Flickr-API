@@ -4,7 +4,7 @@ use warnings;
 use Test::More;
 
 use lib 't/lib';
-use Test::NFA qw(new_api response disabled timeout internal_error);
+use Test::NFA qw(new_api response disabled flickr_error timeout internal_error);
 
 sub retry_ok {
         my %arg = @_;
@@ -99,6 +99,23 @@ for my $handler (qw(LibXML XPath)) {
                  calls     => 1,
                  sleeps    => [],
                  errors    => [ qr/XML parse error/, qr/failed to parse API response/, qr/Can't connect/ ]);
+
+        retry_ok(desc      => "$handler: a Flickr API error is a failure",
+                 handler   => $handler,
+                 responses => [ flickr_error(105, "Service currently unavailable") ],
+                 ok        => 0,
+                 calls     => 1,
+                 sleeps    => [],
+                 errors    => [ qr/\[105\] Service currently unavailable/ ]);
+
+        retry_ok(desc      => "$handler: XML that isn't a Flickr reply is a failure",
+                 handler   => $handler,
+                 responses => [ HTTP::Response->new(502, "Bad Gateway", [],
+                                  "<html><body>Bad Gateway</body></html>") ],
+                 ok        => 0,
+                 calls     => 1,
+                 sleeps    => [],
+                 errors    => [ qr/no stat="ok"/, qr/Bad Gateway/ ]);
 }
 
 retry_ok(desc      => "read timeout, then success",
