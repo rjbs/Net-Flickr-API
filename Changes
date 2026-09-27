@@ -1,0 +1,26 @@
+Revision history for Net-Flickr-API
+
+{{$NEXT}}
+        - a request that timed out is retried, up to three times
+        - when Flickr reports the API disabled for too long, api_call logs an
+          error and returns undef, instead of calling exit
+        - with the XPath handler, a response that isn't XML (like an LWP
+          timeout) is a logged failure, instead of a fatal error
+        - a Flickr API error (stat="fail") makes api_call return undef, as
+          documented, instead of returning the error document
+        - XML that isn't a Flickr reply (no stat="ok") makes api_call return
+          undef
+
+1.8       2026-09-26 20:52:50-04:00 America/New_York
+        - API calls are paced with a token bucket on Time::HiRes, allowing up
+          to 3600 per hour; request latency no longer adds to the pause
+        - new flickr.api_calls_per_hour option, capped at 3600
+        - HTTP 429 is retried as well as 503, honoring Retry-After as seconds
+          or a date
+        - retries are a loop, not recursion, so nested calls no longer reset
+          the retry count
+        - giving up on retries returns undef, instead of passing undef to
+          parse_api_call
+
+!!! Logs for previous changes are found in Changes.rdf, which may some day be
+    rewritten into ... well, something other than RDF.
