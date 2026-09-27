@@ -7,7 +7,7 @@ package Test::NFA;
 # whose Flickr client replays canned responses. -- claude, 2026-09-26
 
 use Exporter 'import';
-our @EXPORT_OK = qw(new_api response);
+our @EXPORT_OK = qw(new_api response disabled);
 
 use Config::Simple;
 use HTTP::Response;
@@ -21,6 +21,12 @@ sub response {
                  :                "status $code";
 
         return HTTP::Response->new($code, "status $code", \@headers, $body);
+}
+
+# A Flickr "API disabled" failure, which comes with a 200.
+sub disabled {
+        return HTTP::Response->new(200, "OK", [],
+                '<rsp stat="fail"><err code="0" msg="Sorry, the Flickr API service is not currently available." /></rsp>');
 }
 
 # new_api(responses => \@responses, %config)

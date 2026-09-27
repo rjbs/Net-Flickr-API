@@ -24,6 +24,7 @@
                         asc:update        "Retry HTTP 429 as well as 503, honoring Retry-After as seconds or a date" ;
                         asc:bugfix        "Retries are a loop, not recursion, so the retry count is not reset by nested calls" ;
                         asc:bugfix        "Giving up on retries returns undef instead of passing undef to parse_api_call" ;
+                        asc:bugfix        "When the API stays disabled, log an error and return undef instead of calling exit" ;
                         ] .
 
 <http://aaronland.info/perl/net/delicious/Net-Flickr-API-1.7.tar.gz>

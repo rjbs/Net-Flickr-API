@@ -611,8 +611,12 @@ sub api_disabled {
         $self->{'__retries'} ++;
 
         if ($self->{'__retries'} > $RETRY_MAXTRIES) {
-                $self->log()->critical(sprintf("API still down after %s tries - exiting", $RETRY_MAXTRIES));
-                exit;
+                $self->log()->error(sprintf("API still down after %s tries calling %s; giving up",
+                                            $RETRY_MAXTRIES, $args->{method}));
+
+                # Reset, so that the next call gets its own tries.
+                $self->{'__retries'} = 0;
+                return undef;
         }
 
         my $pause = $PAUSE_SECONDS_UNAVAILABLE * $self->{'__retries'};
@@ -622,14 +626,7 @@ sub api_disabled {
 
         # try, try again
 
-        $res = $self->api_call($args);
-
-        if (! $res) {
-                $self->log()->critical("Returned false during 'api disabled' retry. That can only be bad - exiting");
-                exit;
-        }
-
-        return $res;
+        return $self->api_call($args);
 }
 
 =head2 $obj->upload(\%args)

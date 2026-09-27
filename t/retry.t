@@ -4,7 +4,7 @@ use warnings;
 use Test::More;
 
 use lib 't/lib';
-use Test::NFA qw(new_api response);
+use Test::NFA qw(new_api response disabled);
 
 sub retry_ok {
         my %arg = @_;
@@ -78,5 +78,19 @@ retry_ok(desc      => "give up after ten retries",
          calls     => 11,
          sleeps    => [ (1) x 10 ],
          errors    => [ qr/status 429 10 times/ ]);
+
+retry_ok(desc      => "API disabled, then back",
+         responses => [ disabled(), response(200) ],
+         ok        => 1,
+         calls     => 2,
+         sleeps    => [4],
+         errors    => [ qr/\[0\] Sorry/ ]);
+
+retry_ok(desc      => "API disabled for good: give up, don't exit",
+         responses => [ disabled() ],
+         ok        => 0,
+         calls     => 11,
+         sleeps    => [ map { 4 * $_ } 1 .. 10 ],
+         errors    => [ (qr/\[0\] Sorry/) x 11, qr/API still down after 10 tries/ ]);
 
 done_testing;
