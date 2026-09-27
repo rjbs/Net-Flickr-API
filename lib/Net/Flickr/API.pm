@@ -134,6 +134,7 @@ Readonly::Scalar my $CALLS_PER_HOUR_MAX        => 3600;
 Readonly::Scalar my $CALLS_PER_HOUR_MIN        => 60;
 Readonly::Scalar my $PAUSE_SECONDS_UNAVAILABLE => 4;
 Readonly::Scalar my $PAUSE_MAXTRIES            => 10;
+Readonly::Scalar my $TIMEOUT_MAXTRIES          => 3;
 Readonly::Hash   my %PAUSE_ONSTATUS            => (429 => 1, 503 => 1);
 
 Readonly::Scalar my $RETRY_MAXTRIES            => 10;
@@ -306,12 +307,14 @@ sub api_call {
         my $args = shift;
         
         # A 429 (rate limited) or 503 (unavailable) reply is retried in this
-        # loop, up to $PAUSE_MAXTRIES times.  This used to be done by having
+        # loop, up to $PAUSE_MAXTRIES times, and a timeout up to
+        # $TIMEOUT_MAXTRIES times.  This used to be done by having
         # retry_api_call call api_call recursively, which reset the retry
         # count as each nested call returned. -- claude, 2026-09-26
 
-        my $res   = undef;
-        my $tries = 0;
+        my $res      = undef;
+        my $tries    = 0;
+        my $timeouts = 0;
 
         while (1) {
 
@@ -342,6 +345,26 @@ sub api_call {
                 if ($@) {
                         $self->log()->error("Fatal error calling the Flickr API, $@");
                         return undef;
+                }
+
+                # A timeout gets only a few retries: other network failures
+                # aren't retried at all, and if the network is down, retrying
+                # every call for minutes would only make the run crawl.
+
+                if ($self->_is_timeout($res)) {
+                        $timeouts ++;
+
+                        if ($timeouts > $TIMEOUT_MAXTRIES) {
+                                $self->log()->error(sprintf("request timed out %d times calling %s; giving up",
+                                                            $timeouts, $args->{method}));
+                                return undef;
+                        }
+
+                        my $pause = $PAUSE_SECONDS_UNAVAILABLE * $timeouts;
+
+                        $self->log()->debug(sprintf("request timed out, pause for %.2f seconds", $pause));
+                        $self->_sleep($pause);
+                        next;
                 }
 
                 #
@@ -458,6 +481,21 @@ sub _await_rate_limit {
         }
 
         $bucket->{tokens} --;
+}
+
+# Did the request time out?  When LWP can't get a response at all, it makes
+# one up, marks it with a Client-Warning header, and puts its error message
+# ("read timeout", "Connection timed out", and so on) in the status message
+# and the body.
+sub _is_timeout {
+        my $self = shift;
+        my $res  = shift;
+
+        my $warning = $res->header("Client-Warning");
+        return 0 unless defined($warning) && $warning eq "Internal response";
+
+        my $text = join("\n", $res->message() // "", $res->decoded_content() // "");
+        return ($text =~ /\btime(?:d\s*)?out\b/i) ? 1 : 0;
 }
 
 # These exist so that tests can supply a fake clock.

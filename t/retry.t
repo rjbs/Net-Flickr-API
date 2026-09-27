@@ -4,7 +4,7 @@ use warnings;
 use Test::More;
 
 use lib 't/lib';
-use Test::NFA qw(new_api response disabled timeout);
+use Test::NFA qw(new_api response disabled timeout internal_error);
 
 sub retry_ok {
         my %arg = @_;
@@ -94,12 +94,45 @@ for my $handler (qw(LibXML XPath)) {
 
         retry_ok(desc      => "$handler: non-XML body is a failure, not a crash",
                  handler   => $handler,
-                 responses => [ timeout() ],
+                 responses => [ internal_error("Can't connect to api.flickr.com:443") ],
                  ok        => 0,
                  calls     => 1,
                  sleeps    => [],
-                 errors    => [ qr/XML parse error/, qr/failed to parse API response/, qr/read timeout/ ]);
+                 errors    => [ qr/XML parse error/, qr/failed to parse API response/, qr/Can't connect/ ]);
 }
+
+retry_ok(desc      => "read timeout, then success",
+         responses => [ timeout(), response(200) ],
+         ok        => 1,
+         calls     => 2,
+         sleeps    => [4]);
+
+retry_ok(desc      => "connect timeout counts too",
+         responses => [ internal_error("Can't connect to api.flickr.com:443 (Connection timed out)"),
+                        response(200) ],
+         ok        => 1,
+         calls     => 2,
+         sleeps    => [4]);
+
+retry_ok(desc      => "give up after three timeout retries",
+         responses => [ timeout() ],
+         ok        => 0,
+         calls     => 4,
+         sleeps    => [4, 8, 12],
+         errors    => [ qr/timed out 4 times/ ]);
+
+retry_ok(desc      => "timeouts and 503s have separate limits",
+         responses => [ timeout(), response(503), timeout(), response(200) ],
+         ok        => 1,
+         calls     => 4,
+         sleeps    => [4, 4, 8]);
+
+retry_ok(desc      => "a 500 from Flickr itself is not a timeout",
+         responses => [ HTTP::Response->new(500, "read timeout", [], "read timeout") ],
+         ok        => 0,
+         calls     => 1,
+         sleeps    => [],
+         errors    => [ qr/XML parse error/, qr/failed to parse API response/, qr/read timeout/ ]);
 
 retry_ok(desc      => "API disabled, then back",
          responses => [ disabled(), response(200) ],
