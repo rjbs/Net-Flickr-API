@@ -4,7 +4,7 @@ use warnings;
 package Test::NFA;
 
 # Test helpers for Net::Flickr::API: an API object whose clock is fake and
-# whose Flickr client replays canned responses. -- claude, 2026-09-26
+# whose Flickr client replays canned responses.
 
 use Exporter 'import';
 our @EXPORT_OK = qw(new_api response disabled flickr_error timeout internal_error);

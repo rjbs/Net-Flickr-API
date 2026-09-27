@@ -1,15 +1,8 @@
 use strict;
 
-# $Id: API.pm,v 1.35 2009/08/02 17:16:12 asc Exp $
-# -*-perl-*-
-
 package Net::Flickr::API;
 
-$Net::Flickr::API::VERSION = '1.9';
-
-=head1 NAME
-
-Net::Flickr::API - base API class for Net::Flickr::* libraries
+# ABSTRACT: base API class for Net::Flickr::* libraries
 
 =head1 SYNOPSIS
 
@@ -308,9 +301,7 @@ sub api_call {
         
         # A 429 (rate limited) or 503 (unavailable) reply is retried in this
         # loop, up to $PAUSE_MAXTRIES times, and a timeout up to
-        # $TIMEOUT_MAXTRIES times.  This used to be done by having
-        # retry_api_call call api_call recursively, which reset the retry
-        # count as each nested call returned. -- claude, 2026-09-26
+        # $TIMEOUT_MAXTRIES times.
 
         my $res      = undef;
         my $tries    = 0;
@@ -428,7 +419,7 @@ sub _retry_pause {
 # rate is set so that this is no more than calls_per_hour for T = 3600, so a
 # burst after a lull never pushes an hour over the limit.  The bucket is
 # charged when a request is sent, so request latency overlaps the wait for the
-# next token instead of adding to it. -- claude, 2026-09-26
+# next token instead of adding to it.
 sub _init_rate_limit {
         my $self = shift;
 
@@ -629,7 +620,7 @@ sub _parse_results_xml {
                         # XML::XPath doesn't parse until the first find, so
                         # do one here, where a parse error is caught, instead
                         # of in parse_api_call, where it would kill the
-                        # program. -- claude, 2026-09-27
+                        # program.
                         eval {
                                 my $xp = XML::XPath->new(xml=>$res->decoded_content());
                                 $xp->find("/");
@@ -736,18 +727,6 @@ sub log {
         return $self->{'__logger'};
 }
 
-=head1 VERSION
-
-1.9
-
-=head1 DATE
-
-$Date: 2009/08/02 17:16:12 $
-
-=head1 AUTHOR
-
-Aaron Straup Cope E<lt>ascope@cpan.orgE<gt>
-
 =head1 SEE ALSO
 
 L<Config::Simple>
@@ -757,17 +736,6 @@ L<Flickr::API>
 L<XML::XPath>
 
 L<XML::LibXML>
-
-=head1 BUGS
-
-Please report all bugs via http://rt.cpan.org/
-
-=head1 LICENSE
-
-Copyright (c) 2005-2008 Aaron Straup Cope. All Rights Reserved.
-
-This is free software. You may redistribute it and/or
-modify it under the same terms as Perl itself.
 
 =cut
 
