@@ -4,17 +4,22 @@ use warnings;
 use Test::More;
 
 use lib 't/lib';
-use Test::NFA qw(new_api response disabled);
+use Test::NFA qw(new_api response disabled timeout);
 
 sub retry_ok {
         my %arg = @_;
 
-        my $api = new_api(responses => $arg{responses});
-        my $got = $api->api_call({method => 'flickr.test.echo', args => {}});
+        my $api = new_api(responses => $arg{responses},
+                          ($arg{handler} ? (api_handler => $arg{handler}) : ()));
+
+        my $got  = eval { $api->api_call({method => 'flickr.test.echo', args => {}}) };
+        my $died = $@;
 
         local $Test::Builder::Level = $Test::Builder::Level + 1;
 
         subtest $arg{desc} => sub {
+                is($died, '', "api_call did not die");
+
                 if ($arg{ok}) {
                         ok($got, "api_call returned a document");
                 } else {
@@ -78,6 +83,23 @@ retry_ok(desc      => "give up after ten retries",
          calls     => 11,
          sleeps    => [ (1) x 10 ],
          errors    => [ qr/status 429 10 times/ ]);
+
+for my $handler (qw(LibXML XPath)) {
+        retry_ok(desc      => "$handler: plain success",
+                 handler   => $handler,
+                 responses => [ response(200) ],
+                 ok        => 1,
+                 calls     => 1,
+                 sleeps    => []);
+
+        retry_ok(desc      => "$handler: non-XML body is a failure, not a crash",
+                 handler   => $handler,
+                 responses => [ timeout() ],
+                 ok        => 0,
+                 calls     => 1,
+                 sleeps    => [],
+                 errors    => [ qr/XML parse error/, qr/failed to parse API response/, qr/read timeout/ ]);
+}
 
 retry_ok(desc      => "API disabled, then back",
          responses => [ disabled(), response(200) ],

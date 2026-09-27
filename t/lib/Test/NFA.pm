@@ -7,7 +7,7 @@ package Test::NFA;
 # whose Flickr client replays canned responses. -- claude, 2026-09-26
 
 use Exporter 'import';
-our @EXPORT_OK = qw(new_api response disabled);
+our @EXPORT_OK = qw(new_api response disabled timeout);
 
 use Config::Simple;
 use HTTP::Response;
@@ -27,6 +27,13 @@ sub response {
 sub disabled {
         return HTTP::Response->new(200, "OK", [],
                 '<rsp stat="fail"><err code="0" msg="Sorry, the Flickr API service is not currently available." /></rsp>');
+}
+
+# What LWP makes up when a request times out: not from Flickr at all.
+sub timeout {
+        return HTTP::Response->new(500, "read timeout",
+                [ 'Client-Warning' => 'Internal response' ],
+                "read timeout at Net/HTTP/Methods.pm line 274.\n");
 }
 
 # new_api(responses => \@responses, %config)

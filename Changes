@@ -25,6 +25,7 @@
                         asc:bugfix        "Retries are a loop, not recursion, so the retry count is not reset by nested calls" ;
                         asc:bugfix        "Giving up on retries returns undef instead of passing undef to parse_api_call" ;
                         asc:bugfix        "When the API stays disabled, log an error and return undef instead of calling exit" ;
+                        asc:bugfix        "With the XPath handler, a response that isn't XML (like an LWP timeout) is a logged failure instead of a fatal error" ;
                         ] .
 
 <http://aaronland.info/perl/net/delicious/Net-Flickr-API-1.7.tar.gz>

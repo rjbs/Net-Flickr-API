@@ -574,8 +574,14 @@ sub _parse_results_xml {
                 eval "require XML::XPath";
 
                 if (! $@) {
+                        # XML::XPath doesn't parse until the first find, so
+                        # do one here, where a parse error is caught, instead
+                        # of in parse_api_call, where it would kill the
+                        # program. -- claude, 2026-09-27
                         eval {
-                                $xml = XML::XPath->new(xml=>$res->decoded_content());
+                                my $xp = XML::XPath->new(xml=>$res->decoded_content());
+                                $xp->find("/");
+                                $xml = $xp;
                         };
                 }
         }
