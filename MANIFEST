@@ -11,3 +11,4 @@ t/00-load.t
 t/lib/Test/NFA.pm
 t/retry.t
 t/pacing.t
+META.json
