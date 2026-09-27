@@ -1,15 +1,8 @@
 use strict;
 
-# $Id: API.pm,v 1.35 2009/08/02 17:16:12 asc Exp $
-# -*-perl-*-
-
 package Net::Flickr::API;
 
-$Net::Flickr::API::VERSION = '1.9';
-
-=head1 NAME
-
-Net::Flickr::API - base API class for Net::Flickr::* libraries
+# ABSTRACT: base API class for Net::Flickr::* libraries
 
 =head1 SYNOPSIS
 
@@ -736,18 +729,6 @@ sub log {
         return $self->{'__logger'};
 }
 
-=head1 VERSION
-
-1.9
-
-=head1 DATE
-
-$Date: 2009/08/02 17:16:12 $
-
-=head1 AUTHOR
-
-Aaron Straup Cope E<lt>ascope@cpan.orgE<gt>
-
 =head1 SEE ALSO
 
 L<Config::Simple>
@@ -757,17 +738,6 @@ L<Flickr::API>
 L<XML::XPath>
 
 L<XML::LibXML>
-
-=head1 BUGS
-
-Please report all bugs via http://rt.cpan.org/
-
-=head1 LICENSE
-
-Copyright (c) 2005-2008 Aaron Straup Cope. All Rights Reserved.
-
-This is free software. You may redistribute it and/or
-modify it under the same terms as Perl itself.
 
 =cut
 
