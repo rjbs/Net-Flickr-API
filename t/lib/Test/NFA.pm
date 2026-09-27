@@ -11,6 +11,7 @@ our @EXPORT_OK = qw(new_api response);
 
 use Config::Simple;
 use HTTP::Response;
+use Log::Dispatch::Code;
 
 sub response {
         my $code    = shift;
@@ -40,6 +41,17 @@ sub new_api {
         my $api = Test::NFA::API->new($cfg);
         $api->{api} = Test::NFA::Client->new($api, $responses, $latency);
 
+        # Errors are logged to STDERR; collect them for inspection instead.
+        $api->log->remove('__error');
+        $api->log->add(Log::Dispatch::Code->new(
+                name      => '__test',
+                min_level => 'error',
+                code      => sub {
+                        my %msg = @_;
+                        push @{ $api->{'__logged'} }, $msg{message};
+                },
+        ));
+
         return $api;
 }
 
@@ -64,6 +76,11 @@ sub _sleep {
 sub sleeps {
         my $self = shift;
         return $self->{'__sleeps'} || [];
+}
+
+sub logged_errors {
+        my $self = shift;
+        return $self->{'__logged'} || [];
 }
 
 sub advance {

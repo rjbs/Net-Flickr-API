@@ -20,6 +20,7 @@ my $build = Module::Build->new(module_name => 'Net::Flickr::API',
 				   'XML::XPath'      => '1.13',
 			       },
 			       build_requires => {
+				   'Log::Dispatch::Code'       => '2.36',
 				   'Test::Simple'              => '0.47',
 			       },
 			       create_readme      => 1,

@@ -23,6 +23,14 @@ sub retry_ok {
 
                 is($api->{api}->calls, $arg{calls}, "made $arg{calls} requests");
                 is_deeply($api->sleeps, $arg{sleeps}, "slept as expected");
+
+                my @logged = @{ $api->logged_errors };
+                my @want   = @{ $arg{errors} || [] };
+
+                is(@logged, @want, "logged " . @want . " errors")
+                        or diag explain \@logged;
+
+                like($logged[$_], $want[$_], "error $_ is as expected") for 0 .. $#want;
         };
 }
 
@@ -61,12 +69,14 @@ retry_ok(desc      => "other errors are not retried",
          responses => [ response(500) ],
          ok        => 0,
          calls     => 1,
-         sleeps    => []);
+         sleeps    => [],
+         errors    => [ qr/XML parse error/, qr/failed to parse API response/, qr/status 500/ ]);
 
 retry_ok(desc      => "give up after ten retries",
          responses => [ map { response(429, 'Retry-After' => 1) } 1 .. 11 ],
          ok        => 0,
          calls     => 11,
-         sleeps    => [(1) x 10 ]);
+         sleeps    => [ (1) x 10 ],
+         errors    => [ qr/status 429 10 times/ ]);
 
 done_testing;
